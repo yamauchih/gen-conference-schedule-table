@@ -1,0 +1,33 @@
+This is ChangeLog: draw_conf_schedule.rb
+
+2010-06-08  Yamauchi, Hitoshi
+
+	* (draw_conf_schedule.rb) Change the color according to the Color
+	Universal Design. Concerning of the universal color. Suggested
+	by Brandon Lloyd. Thanks to Carstem Waechter.
+
+	* (draw_conf_schedule.rb) Change the marker shape. Use not only
+	the triangles, but also the circles and squares. Suggested by
+	Daniel Seibert.
+
+	* (draw_conf_schedule.rb) Added stripe in background.
+	Suggested by Goshima Kazuhiro.
+
+
+2010-06-07  Yamauchi, Hitoshi
+
+	* (draw_conf_schedule.rb) Change the date format. Not yet decided which.
+	Suggested by Brandon Lloyd.
+
+2010-06-06  Yamauchi, Hitoshi
+
+	* (draw_conf_schedule.rb) Added notification date. Suggested by Brandon Lloyd.
+
+	* (draw_conf_schedule.rb) Added text on/off switch for
+	notification date, conference date, and deadline date.
+
+
+2010-06-05  Yamauchi, Hitoshi
+
+	* (draw_conf_schedule.rb) Initial version. Fixed the cut out
+	conference date bug in the original script.
