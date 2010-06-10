@@ -47,7 +47,7 @@ CONF_NAME_LABEL_HEIGHT    = 20
 CONF_NAME_LABEL_TOPMARGIN = 15
 
 BAR_TOP_MARGIN    = 10
-BAR_LABEL_MARGIN  = 3
+BAR_LABEL_MARGIN  = 4
 BAR_HEIGHT        = 1
 
 # Marker size
@@ -737,7 +737,13 @@ HEADER
   #
   def get_format_deadline_date(_conf_entry)
     begin
-      ret = _conf_entry.conf_deadline_date.strftime('%m/%d')
+      if $OPT_MONTH_NAME == '1' then
+        date_format = '%b/%d'
+      else
+        date_format = '%m/%d'
+      end
+
+      ret = _conf_entry.conf_deadline_date.strftime(date_format)
       return ret
     end
   end
@@ -747,7 +753,13 @@ HEADER
   #
   def get_format_notification_date(_conf_entry)
     begin
-      ret = _conf_entry.conf_notification_date.strftime('%m/%d')
+      if $OPT_MONTH_NAME == '1' then
+        date_format = '%b/%d'
+      else
+        date_format = '%m/%d'
+      end
+
+      ret = _conf_entry.conf_notification_date.strftime(date_format)
       return ret
     end
   end
@@ -757,7 +769,13 @@ HEADER
   #
   def get_format_conf_date(_conf_entry)
     begin
-      ret = _conf_entry.conf_start_date.strftime('%m/%d')
+      if $OPT_MONTH_NAME == '1' then
+        date_format = '%b/%d'
+      else
+        date_format = '%m/%d'
+      end
+
+      ret = _conf_entry.conf_start_date.strftime(date_format)
 
       if _conf_entry.conf_start_date == _conf_entry.conf_end_date then
         # one day conference
@@ -773,7 +791,7 @@ HEADER
         return ret
       else
         # not the same month
-        ret = ret + _conf_entry.conf_end_date.strftime('%m/%d')
+        ret = ret + _conf_entry.conf_end_date.strftime(date_format)
         return ret
       end
     end
@@ -920,6 +938,7 @@ args.set_options(['--infile',           '-i', GetoptLong::REQUIRED_ARGUMENT],
                  ['--textdeadline',     '-d', GetoptLong::REQUIRED_ARGUMENT],
                  ['--textconference',   '-c', GetoptLong::REQUIRED_ARGUMENT],
                  ['--textnotification', '-n', GetoptLong::REQUIRED_ARGUMENT],
+                 ['--month-name',       '-m', GetoptLong::REQUIRED_ARGUMENT],
                  ['--help',             '-h', GetoptLong::NO_ARGUMENT],
                  ['--version',          '-V', GetoptLong::NO_ARGUMENT],
                  ['--verbose',          '-v', GetoptLong::NO_ARGUMENT]
@@ -975,12 +994,20 @@ if !$OPT_TEXTNOTIFICATION
   # default: text nootification date off
   $OPT_TEXTNOTIFICATION = '0'
 end
+
+#--- use month name
+if !$OPT_MONTH_NAME
+  # default: month name off
+  $OPT_MONTH_NAME = '0'
+end
+
+
 if $OPT_VERBOSE
   print("OPT_TEXTDEADLINE     = " + $OPT_TEXTDEADLINE     + "\n")
   print("OPT_TEXTCONFERENCE   = " + $OPT_TEXTCONFERENCE   + "\n")
   print("OPT_TEXTNOTIFICATION = " + $OPT_TEXTNOTIFICATION + "\n")
+  print("OPT_MONTH_NAME       = " + $OPT_MONTH_NAME       + "\n")
 end
-
 
 # --- expand
 dcs = Draw_conf_schedule.new()

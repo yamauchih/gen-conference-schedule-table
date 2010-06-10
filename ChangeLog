@@ -1,5 +1,10 @@
 This is ChangeLog: draw_conf_schedule.rb
 
+2010-06-10  Yamauchi, Hitoshi
+
+	* (draw_conf_schedule.rb) Added month name option. Suggested by
+	Sehera Nawaz.
+
 2010-06-08  Yamauchi, Hitoshi
 
 	* (draw_conf_schedule.rb) Change the color according to the Color
