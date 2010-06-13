@@ -22,9 +22,6 @@
 #------------------------------------------------------------
 # TODO:
 # - generate image map
-#
-
-
 #------------------------------------------------------------
 
 require 'getoptlong.rb'
@@ -33,7 +30,7 @@ require 'date'
 #------------------------------------------------------------
 # constants
 #------------------------------------------------------------
-DRAW_CONF_SCHEDULE_VERSION = "0.0.0"
+DRAW_CONF_SCHEDULE_VERSION = "0.0.1"
 MAX_CONF_NAME_LENGTH       = 8
 
 # figure margin (pixels)
@@ -43,12 +40,14 @@ LR_MARGIN  = 10
 TB_MARGIN  = 10
 
 CONF_NAME_LABEL_WIDTH     = 120
-CONF_NAME_LABEL_HEIGHT    = 20
-CONF_NAME_LABEL_TOPMARGIN = 15
+CONF_NAME_LABEL_TOPMARGIN = 12
 
-BAR_TOP_MARGIN    = 10
-BAR_LABEL_MARGIN  = 4
-BAR_HEIGHT        = 1
+BAR_TOP_MARGIN     = 20
+BAR_LABEL_T_MARGIN = 6
+BAR_LABEL_B_MARGIN = 4
+BAR_HEIGHT         = 1
+DATE_LABEL_HEIGHT  = 8
+
 
 # Marker size
 TRIANGLE_SIZE = 7
@@ -56,7 +55,7 @@ CIRCLE_SIZE   = 8
 SQUARE_SIZE   = 7
 
 # pixel size of date label
-SINGLE_DATE_WIDTH = 60
+# This is the max width (2010/01/01-2010/01/02 format), for safety
 DOUBLE_DATE_WIDTH = 126
 
 #
@@ -90,7 +89,7 @@ NOTIFICATIONMARK_COLOR = ORANGE
 #------------------------------------------------------------
 def print_help()
   $stderr.print <<"HELP"
-usage: draw_conf_schedule.rb [-h|--help] [-V|--version] [-v|--verbose] [[-i|--infile] infile.dat] [[-o|--outfile] outfile.png] [[-d|--textdeadline] {0|1}] [[-c|--textconference] {0|1}] [[-n|--textnotification]  {0|1}]
+usage: draw_conf_schedule.rb [-h|--help] [-V|--version] [-v|--verbose] [[-i|--infile] infile.dat] [[-o|--outfile] outfile.png] [[-d|--textdeadline] {0|1}] [[-c|--textconference] {0|1}] [[-n|--textnotification] {0|1} [[-m|--month-name] {0|1}]
 
 draw conference schedule image from conference data.
   -h, --help     output this help.
@@ -102,7 +101,10 @@ draw conference schedule image from conference data.
 Text on/off switch
   -d, --textdeadline      [0|1] deadline     date text 0...off, 1...on, (default:1)
   -c, --textconference    [0|1] conference   date text 0...off, 1...on, (default:1)
-  -n, --textnotification  [0|1] notification date text 0...off, 1...on, (default:0)
+  -n, --textnotification  [0|1] notification date text 0...off, 1...on, (default:1)
+
+Text format switch
+  -m, --month-name        [0|1] use month name format. (e.g, Jan/01)
 
 CG conf input data Example
 -----
@@ -500,7 +502,7 @@ class Draw_conf_schedule
     begin
       @outfile.print <<"HEADER"
 #
-# conference schedule figure
+# conference schedule table
 # Copyright (C) 2010 Yamauchi, Hitoshi
 #
 new
@@ -586,7 +588,7 @@ HEADER
   def fly_out_month_grid()
     begin
       year_range = Range.new(@min_year, @max_year)
-      orig_date  = Date::new(@min_year, 1, 1)
+      orig_date  = get_origin_date()
       year_x     = LR_MARGIN + CONF_NAME_LABEL_WIDTH
       year_y     = TB_MARGIN + @grid_height
       for year in year_range
@@ -712,9 +714,9 @@ HEADER
   def fly_out_range_bar_triangle(_x1, _y1, _x2, _y2)
     begin
       x1 = _x1.to_s
-      y1 = (_y1 + BAR_TOP_MARGIN).to_s
+      y1 = _y1.to_s
       x2 = _x2.to_s
-      y2 = (_y2 + BAR_TOP_MARGIN + BAR_HEIGHT).to_s
+      y2 = (_y2 + BAR_HEIGHT).to_s
       bar_rs = BAR_COLOR[0].to_s
       bar_gs = BAR_COLOR[1].to_s
       bar_bs = BAR_COLOR[2].to_s
@@ -798,57 +800,104 @@ HEADER
   end
 
   #
+  # get calender origin date
+  # \return origin date as Date's instance
+  def get_origin_date()
+    begin
+      return Date::new(@min_year, 1, 1)
+    end
+  end
+
+  #
+  # get conference label position
+  # \param  _entry_orig_y current entry left up's y position
+  # \return [x, y] label entry position
+  #
+  def get_conf_label_position(_entry_orig_y)
+    begin
+      x = LR_MARGIN
+      y = _entry_orig_y + CONF_NAME_LABEL_TOPMARGIN
+      return [x, y]
+    end
+  end
+
+  #
+  # get date coordinate on the bar
+  # \param  _entry_orig_y current entry left up's y position
+  # \param  _date  date
+  # \return [x, y] date coordinate
+  #
+  def get_bar_date_position(_entry_orig_y, _date)
+    begin
+      orig_date     = get_origin_date()
+      day_from_orig = (_date - orig_date).to_i
+      day_x         = LR_MARGIN + CONF_NAME_LABEL_WIDTH + day_from_orig
+      day_y         = _entry_orig_y + BAR_TOP_MARGIN
+
+      return [day_x, day_y]
+    end
+  end
+
+  #
   # fly output conference entry
   #
   def fly_out_all_conf_entry()
     begin
-      conf_label_margin = TB_MARGIN + @grid_height + CONF_NAME_LABEL_TOPMARGIN
-      label_y    = TB_MARGIN + @grid_height + BAR_TOP_MARGIN
-      bar_x_orig = LR_MARGIN + CONF_NAME_LABEL_WIDTH
-      orig_date  = Date::new(@min_year, 1, 1)
+      entry_orig_y = TB_MARGIN + @grid_height
 
       for conf_entry in @conf_entry_array
+        #------------------------------------------------------------
         # conference name
-        fly_out_text(LR_MARGIN, label_y, 'medium', conf_entry.conf_name,
+        #------------------------------------------------------------
+        label_xy = get_conf_label_position(entry_orig_y)
+        fly_out_text(label_xy[0], label_xy[1], 'medium', conf_entry.conf_name,
                      'conferen label: ' + conf_entry.conf_name)
 
-        # range bar
-        dline_day = (conf_entry.conf_deadline_date - orig_date).to_i
-        end_day   = (conf_entry.conf_end_date      - orig_date).to_i
-        bar_start_x = bar_x_orig + dline_day
-        bar_end_x   = bar_x_orig + end_day
-        fly_out_range_bar_triangle(bar_start_x, label_y, bar_end_x, label_y)
+        #------------------------------------------------------------
+        # bar and mark
+        #------------------------------------------------------------
+        # range bar: deadline pos, conference date pos
+        dpos = get_bar_date_position(entry_orig_y, conf_entry.conf_deadline_date)
+        cpos = get_bar_date_position(entry_orig_y, conf_entry.conf_end_date)
+        fly_out_range_bar_triangle(dpos[0], dpos[1], cpos[0], cpos[1])
 
+        # notification date if exists
+        if !(conf_entry.conf_notification_date.nil?) then
+          npos = get_bar_date_position(entry_orig_y, conf_entry.conf_notification_date)
+          fly_out_circle(NOTIFICATIONMARK_COLOR, npos[0], npos[1], CIRCLE_SIZE)
+        end
+
+        #------------------------------------------------------------
+        # date label
+        #------------------------------------------------------------
         # range bar label (deadline)
         if $OPT_TEXTDEADLINE == '1' then
           dline_s = get_format_deadline_date(conf_entry)
-          fly_out_text(bar_start_x, label_y - BAR_LABEL_MARGIN, 'small',
-                       dline_s, 'deadline: ' + dline_s)
+          dpos = get_bar_date_position(entry_orig_y, conf_entry.conf_deadline_date)
+          fly_out_text(dpos[0], dpos[1] - DATE_LABEL_HEIGHT - BAR_LABEL_T_MARGIN,
+                       'small', dline_s, 'deadline: ' + dline_s)
         end
+
         # range bar label (conf date)
         if $OPT_TEXTCONFERENCE == '1' then
           conf_day_label = get_format_conf_date(conf_entry)
-          fly_out_text(bar_end_x, label_y - BAR_LABEL_MARGIN, 'small',
-                       conf_day_label, 'conference date: ' + conf_day_label)
+          cpos = get_bar_date_position(entry_orig_y, conf_entry.conf_end_date)
+          fly_out_text(cpos[0], cpos[1] - DATE_LABEL_HEIGHT - BAR_LABEL_T_MARGIN,
+                       'small', conf_day_label, 'conference date: ' + conf_day_label)
         end
 
         # notification date if exists
         if !(conf_entry.conf_notification_date.nil?) then
-          notf_day   = (conf_entry.conf_notification_date - orig_date).to_i
-          notf_day_x = bar_x_orig + notf_day
-          notf_day_y = label_y + BAR_TOP_MARGIN
-          fly_out_circle(NOTIFICATIONMARK_COLOR, notf_day_x, notf_day_y, CIRCLE_SIZE)
-
           if $OPT_TEXTNOTIFICATION == '1' then
-            notf_text_y = notf_day_y + BAR_LABEL_MARGIN
+            notf_text_y = npos[1] + BAR_LABEL_B_MARGIN
             notf_label  = get_format_notification_date(conf_entry)
-            fly_out_text(notf_day_x, notf_text_y, 'small', notf_label,
+            fly_out_text(npos[0], notf_text_y, 'small', notf_label,
                          'conference date: ' + notf_label)
           end
         end
 
         # for next label
-        label_y = label_y + @grid_height
+        entry_orig_y = entry_orig_y + @grid_height
       end
     end
   end
@@ -991,8 +1040,8 @@ if !$OPT_TEXTCONFERENCE
   $OPT_TEXTCONFERENCE = '1'
 end
 if !$OPT_TEXTNOTIFICATION
-  # default: text nootification date off
-  $OPT_TEXTNOTIFICATION = '0'
+  # default: text nootification date on
+  $OPT_TEXTNOTIFICATION = '1'
 end
 
 #--- use month name
