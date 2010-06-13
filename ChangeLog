@@ -17,8 +17,8 @@ This is ChangeLog: draw_conf_schedule.rb
 
 	* (draw_conf_schedule.rb) Change the color according to the Color
 	Universal Design. Concerning of the universal color. Suggested
-	by Brandon Lloyd. Thanks to Carstem Waechter.
-
+	by Brandon Lloyd. Thanks to Carsten Waechter.
+	
 	* (draw_conf_schedule.rb) Change the marker shape. Use not only
 	the triangles, but also the circles and squares. Suggested by
 	Daniel Seibert.
