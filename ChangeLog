@@ -1,5 +1,10 @@
 This is ChangeLog: draw_conf_schedule.rb
 
+2010-06-19  Yamauchi, Hitoshi
+
+	* Added draw_conf_schedule_table_length_chart documentation. This
+	figure explain the important size variables.
+
 2010-06-13  Yamauchi, Hitoshi
 
 	* (draw_conf_schedule.rb) change default value of switch
