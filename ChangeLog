@@ -1,5 +1,11 @@
 This is ChangeLog: draw_conf_schedule.rb
 
+
+2010-06-27  Yamauchi, Hitoshi
+
+	* Version 0.1.0. Added date line draw capability. Updated the file
+	format to more general: each item has a commend.
+
 2010-06-19  Yamauchi, Hitoshi
 
 	* Added draw_conf_schedule_table_length_chart documentation. This
@@ -8,7 +14,7 @@ This is ChangeLog: draw_conf_schedule.rb
 	* Added image map export. Now table image is clickable.
 
 	* version 0.0.2
-	
+
 2010-06-13  Yamauchi, Hitoshi
 
 	* (draw_conf_schedule.rb) change default value of switch
@@ -27,7 +33,7 @@ This is ChangeLog: draw_conf_schedule.rb
 	* (draw_conf_schedule.rb) Change the color according to the Color
 	Universal Design. Concerning of the universal color. Suggested
 	by Brandon Lloyd. Thanks to Carsten Waechter.
-	
+
 	* (draw_conf_schedule.rb) Change the marker shape. Use not only
 	the triangles, but also the circles and squares. Suggested by
 	Daniel Seibert.
