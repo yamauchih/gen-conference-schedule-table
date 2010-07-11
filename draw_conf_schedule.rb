@@ -21,7 +21,6 @@
 
 #------------------------------------------------------------
 # TODO:
-# - generate a date line
 #------------------------------------------------------------
 
 require 'getoptlong.rb'
@@ -34,7 +33,7 @@ include RUNIT::Assert
 #------------------------------------------------------------
 # constants
 #------------------------------------------------------------
-DRAW_CONF_SCHEDULE_VERSION = "0.1.0"
+DRAW_CONF_SCHEDULE_VERSION = "0.1.1"
 MAX_CONF_NAME_LENGTH       = 8
 COPYRIGHT_STR              = "Copyright (C) 2010 Yamauchi, Hitoshi. "
 VERSION_STR                = "draw_conf_schedule.rb version " + DRAW_CONF_SCHEDULE_VERSION
@@ -55,6 +54,11 @@ BAR_LABEL_T_MARGIN = 6
 BAR_LABEL_B_MARGIN = 4
 BAR_HEIGHT         = 1
 DATE_LABEL_HEIGHT  = 8
+
+# date line 
+DATE_LINE_LABEL_Y        = 9
+DATE_LINE_START_Y        = 22
+DATE_LINE_BOTTOM_MERGIN  = 0
 
 
 # Marker size
@@ -86,11 +90,13 @@ BLUE      = [ 49, 106, 179]
 GREEN     = [  6, 175, 122]
 ORANGE    = [245, 161,   0]
 LIGHTBLUE = [229, 249, 237]
+BLACK     = [  0,   0,   0]
 
 BAR_COLOR              = BLUE
 DEADLINEMARK_COLOR     = RED
 CONFMARK_COLOR         = GREEN
 NOTIFICATIONMARK_COLOR = ORANGE
+DATE_LINE_COLOR        = BLACK
 
 # current implementation: one pixel is one day
 # DAY_PER_PIXEL = 1
@@ -262,6 +268,41 @@ class One_conf_entry
   end
 end
 
+
+#------------------------------------------------------------
+# class One_date_line_entry
+#------------------------------------------------------------
+class One_date_line_entry
+  # accessor
+  attr_accessor :date_time
+  attr_accessor :date_label
+
+  # constructor
+  def initialize()
+    clear()
+  end
+
+  # clear
+  def clear()
+    @date_time  = nil
+    @date_label = ''
+  end
+
+  # set an entry
+  def set_entry(_date_time,
+                _date_label)
+    begin
+      @date_time  = _date_time
+      @date_label = _date_label
+    end
+  end
+
+  # printout for debug
+  def printout()
+    $stderr.print "[" + @date_label + "] at " + @date_time.to_s + "\n"
+  end
+end
+
 #------------------------------------------------------------
 # class Draw_conf_schedule
 #------------------------------------------------------------
@@ -290,6 +331,9 @@ class Draw_conf_schedule
     @imagemapfile = nil
 
     @conf_entry_array = []
+
+    # date line data
+    @date_line_array = []
 
     # not constant, this depends on text mode
     @grid_height      = 0
@@ -388,8 +432,18 @@ class Draw_conf_schedule
       assert(ddata[0] == 'DATELINE',
              'Internal error. the command must be DATELINE here')
 
-      # append an entry
-      # @dateline_entry_array << conf_entry;
+      # get date
+      ymd_array = ddata[1].split("/")
+      date_time = Date::new(ymd_array[0].to_i, ymd_array[1].to_i, ymd_array[2].to_i)
+      date_label = ddata[2]
+
+      date_line_entry = One_date_line_entry.new()
+      date_line_entry.set_entry(date_time, date_label)
+
+      # DEBUG:
+      # date_line_entry.printout()
+
+      @date_line_array << date_line_entry;
     end
   end
 
@@ -621,6 +675,30 @@ class Draw_conf_schedule
         _x2.to_s + ", " + _y2.to_s + "), RGB ("    +
         _r.to_s  + ", " + _g.to_s  + ", " + _b.to_s  + ")\n"
       @outfile.print "line " + _x1.to_s + "," + _y1.to_s + "," +
+        _x2.to_s + "," + _y2.to_s + "," +
+        _r.to_s  + "," + _g.to_s  + "," + _b.to_s  + "\n"
+    end
+  end
+
+  #
+  # fly output dashed line
+  #
+  # \param _r       color Red
+  # \param _g       color Green
+  # \param _b       color Blue
+  # \param _x1      line origin x
+  # \param _y1      line origin y
+  # \param _x2      line destination x
+  # \param _y2      line destination y
+  # \param _comment comment
+  #
+  def fly_out_dash_line(_r, _g, _b, _x1, _y1, _x2, _y2, _comment)
+    begin
+      @outfile.print "# dashed line " + _comment + ": "   +
+        "(" + _x1.to_s + ", " + _y1.to_s + ")-(" +
+        _x2.to_s + ", " + _y2.to_s + "), RGB ("    +
+        _r.to_s  + ", " + _g.to_s  + ", " + _b.to_s  + ")\n"
+      @outfile.print "dline " + _x1.to_s + "," + _y1.to_s + "," +
         _x2.to_s + "," + _y2.to_s + "," +
         _r.to_s  + "," + _g.to_s  + "," + _b.to_s  + "\n"
     end
@@ -975,6 +1053,33 @@ class Draw_conf_schedule
 
 
   #
+  # fly output all date line entry
+  #
+  def fly_out_all_date_line_entry()
+    begin
+      # date line uses only the x position, therefore, entry_orig_y is 0 here.
+      dummy_orig_y      = 0
+      date_line_label_y = TB_MARGIN + DATE_LINE_LABEL_Y
+      date_line_start_y = TB_MARGIN + DATE_LINE_START_Y
+      date_line_end_y   = @image_height - TB_MARGIN - DATE_LINE_BOTTOM_MERGIN
+      col               = DATE_LINE_COLOR
+
+      for date_line_entry in @date_line_array
+        pos = get_bar_date_position(dummy_orig_y, date_line_entry.date_time)
+        x   = pos[0]
+
+        fly_out_text(x, date_line_label_y, 'small', date_line_entry.date_label,
+                     'date line label')
+
+        fly_out_dash_line(col[0], col[1], col[2], 
+                          x, date_line_start_y, x, date_line_end_y,
+                          date_line_entry.date_time.to_s)
+      end
+    end
+  end
+
+
+  #
   # export fly file
   #
   def export_fly()
@@ -985,6 +1090,7 @@ class Draw_conf_schedule
       fly_out_entry_grid()
       fly_out_month_grid()
       fly_out_all_conf_entry()
+      fly_out_all_date_line_entry()
     end
   end
 
@@ -998,7 +1104,8 @@ class Draw_conf_schedule
       x1s = 0.to_s
       x2s = @image_width.to_s
 
-      @imagemapfile.print '<! image map file generated by draw_conf_schedule.rb -->' + "\n" +
+      @imagemapfile.print '<! image map file generated by draw_conf_schedule.rb -->' +
+        "\n" +
         '<! ' + COPYRIGHT_STR + ' -->' + "\n" +
         '<! ' + VERSION_STR   + ' -->' + "\n"
       @imagemapfile.print '<map name="' + HTML_CONF_TABLE_MAP_NAME + '">' + "\n"
@@ -1010,7 +1117,8 @@ class Draw_conf_schedule
         y2 = entry_orig_y + @grid_height
 
         coords_s    = x1s + ',' + y1.to_s + ',' + x2s + ',' + y2.to_s
-        confname    = conf_entry.conf_name + "_" * (MAX_CONF_NAME_LENGTH - conf_entry.conf_name.size)
+        confname    = conf_entry.conf_name + "_" * 
+          (MAX_CONF_NAME_LENGTH - conf_entry.conf_name.size)
         link_target = '#' + confname
 
         @imagemapfile.print '<area shape="rect" coords="' + coords_s + '" href="' +
