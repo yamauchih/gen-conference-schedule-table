@@ -1,7 +1,7 @@
 #! /usr/bin/ruby
 #
 # draw_conf_schedule.rb
-# Copyright (C) 2010 Yamauchi, Hitoshi
+# Copyright (C) 2010-2012 Yamauchi, Hitoshi
 #
 
 #------------------------------------------------------------
@@ -33,9 +33,8 @@ include RUNIT::Assert
 #------------------------------------------------------------
 # constants
 #------------------------------------------------------------
-DRAW_CONF_SCHEDULE_VERSION = "0.1.1"
-MAX_CONF_NAME_LENGTH       = 8
-COPYRIGHT_STR              = "Copyright (C) 2010 Yamauchi, Hitoshi. "
+DRAW_CONF_SCHEDULE_VERSION = "0.2.0"
+COPYRIGHT_STR              = "Copyright (C) 2010-2012 Yamauchi, Hitoshi. "
 VERSION_STR                = "draw_conf_schedule.rb version " + DRAW_CONF_SCHEDULE_VERSION
 
 # size constants: see draw_conf_schedule_table_length_chart.pdf
@@ -226,10 +225,6 @@ class One_conf_entry
     # conference name
     if @conf_name.empty?
       raise RuntimeError.new("empty conference name\n")
-    end
-    if @conf_name.length > MAX_CONF_NAME_LENGTH
-      raise RuntimeError.new("conference short name is too long: " +
-                             @conf_name + "\n")
     end
 
     # conference time constraint
@@ -1117,8 +1112,7 @@ class Draw_conf_schedule
         y2 = entry_orig_y + @grid_height
 
         coords_s    = x1s + ',' + y1.to_s + ',' + x2s + ',' + y2.to_s
-        confname    = conf_entry.conf_name + "_" * 
-          (MAX_CONF_NAME_LENGTH - conf_entry.conf_name.size)
+        confname    = conf_entry.conf_name
         link_target = '#' + confname
 
         @imagemapfile.print '<area shape="rect" coords="' + coords_s + '" href="' +

@@ -11,7 +11,7 @@ Prerequisites:
         flydraw
 
 Simple example: (or run the test_draw_conf.sh)
-     
+
   1. creating a fly file
 
     draw_conf_schedule.rb -i cg_conf_input_example.dat -o test_00.fly
