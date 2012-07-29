@@ -1,10 +1,15 @@
 This is ChangeLog: draw_conf_schedule.rb
 
+2012-07-29  hitoshi  <hitoshi@mynote>
+
+	* Remove the limit of conference short name length. I don't use
+	text output anymore, so no truncation is needed. Version 0.2.0
+
 2010-07-11  Yamauchi, Hitoshi
 
-	* Version 0.1.1. Implemented date line. 
+	* Version 0.1.1. Implemented date line.
 	  Suggested by Leonhard Gruenschloss.
-	
+
 2010-06-27  Yamauchi, Hitoshi
 
 	* Version 0.1.0. Added date line draw capability. Updated the file
